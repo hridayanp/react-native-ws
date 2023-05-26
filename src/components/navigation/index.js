@@ -1,12 +1,14 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AccountNavigator from './account.navigator';
+import { AppNavigator } from './app.navigator';
 
 const Navigation = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
     <NavigationContainer>
-      <AccountNavigator />
+      {isAuthenticated ? <AppNavigator /> : <AccountNavigator />}
     </NavigationContainer>
   );
 };

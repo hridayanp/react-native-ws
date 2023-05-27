@@ -13,19 +13,19 @@ import { setIsAuthenticated } from '../../../redux/login/loginSlice';
 const SettingsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const logOutHandler = async () => {
-    // try {
-    //   // Clear all AsyncStorage values
-    //   // await AsyncStorage.clear();
-    //   dispatch(
-    //     setIsAuthenticated({
-    //       isAuthenticated: false,
-    //     })
-    //   );
-    //   // Navigate to AccountNavigator
-    //   navigation.navigate('Main');
-    // } catch (error) {
-    //   console.log('Error occurred during logout:', error);
-    // }
+    try {
+      // Clear all AsyncStorage values
+      await AsyncStorage.clear();
+      dispatch(
+        setIsAuthenticated({
+          isAuthenticated: false,
+        })
+      );
+      // // Navigate to AccountNavigator
+      // navigation.navigate('Main');
+    } catch (error) {
+      console.log('Error occurred during logout:', error);
+    }
   };
 
   return (

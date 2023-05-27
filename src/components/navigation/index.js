@@ -6,11 +6,13 @@ import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '../../redux/login/loginSlice';
 
 const Navigation = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { isAuthenticated } = useSelector(selectIsAuthenticated);
+
+  console.log(isAuthenticated);
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AccountNavigator />}
+      {isAuthenticated === true ? <AppNavigator /> : <AccountNavigator />}
     </NavigationContainer>
   );
 };

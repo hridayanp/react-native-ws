@@ -5,7 +5,7 @@ import {
   Image,
   StyleSheet,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BgImage from '../../../../assets/images/signin/bg-image.png';
 import IndraLogo from '../../../../assets/images/indra.png';
 import MisteoLogo from '../../../../assets/images/logo-misteo.svg';
@@ -29,13 +29,17 @@ import {
   AccountTextInputView,
   LogoView,
 } from '../components/account.styles';
-import { logIn } from '../../../api/ApiService';
-import { useMutation } from '@tanstack/react-query';
+import { getStationList, logIn } from '../../../api/ApiService';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastAndroid } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { setIsAuthenticated } from '../../../redux/login/loginSlice';
+import {
+  setAvailableWeatherStations,
+  setWeatherStation,
+} from '../../../redux/dashboard/dashboardSlice';
 
 const styles = StyleSheet.create({
   container: {
@@ -62,6 +66,19 @@ const Signin = ({ navigation }) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [userIdState, setUserIdState] = useState(0);
+  const [isSignInSuccess, setIsSignInSuccess] = useState(false);
+
+  const getUserID = async () => {
+    try {
+      const user_id = await AsyncStorage.getItem('user_id');
+      return user_id;
+    } catch (error) {
+      console.log('Error retrieving user_id from AsyncStorage:', error);
+      return null;
+    }
+  };
+
   const { mutate: signIn } = useMutation((userData) => logIn(userData), {
     onMutate: () => {
       console.log('onMutate');
@@ -69,7 +86,6 @@ const Signin = ({ navigation }) => {
     },
     onSuccess: async (data) => {
       setIsLoading(false);
-      console.log('data :>> ', data);
       if (data.status === 200) {
         if (data.data.success === false) {
           ToastAndroid.show(data.data.message, ToastAndroid.LONG);
@@ -80,11 +96,18 @@ const Signin = ({ navigation }) => {
         await AsyncStorage.setItem('refresh_token', data.data.refresh);
         await AsyncStorage.setItem('user_id', String(data.data.user_id));
 
-        dispatch(
-          setIsAuthenticated({
-            isAuthenticated: true,
-          })
-        );
+        // dispatch(
+        //   setIsAuthenticated({
+        //     isAuthenticated: true,
+        //   })
+        // );
+
+        // const role_id = data.data.role;
+        // const role = roles(role_id);
+        // localStorage.setItem('role', role);
+
+        setIsSignInSuccess(true);
+        setUserIdState(Number(data.data.user_id));
       }
     },
     onError: (error) => {
@@ -92,10 +115,65 @@ const Signin = ({ navigation }) => {
     },
   });
 
+  // Create the stationList query outside the component
+  const stationListQuery = useQuery(
+    ['stationList'],
+    () => getStationList({ user_id: userIdState }),
+    {
+      refetchOnWindowFocus: false,
+      enabled: false,
+      onSuccess: (data) => {
+        console.log('data in stationList', data);
+        const {
+          status,
+          data: { station_list },
+        } = data;
+        const id = station_list?.[0]?.weather_station_id;
+        const name = station_list?.[0]?.weather_station;
+        status === 200 && data.data.success === true
+          ? dispatch(setAvailableWeatherStations(station_list)) &&
+            dispatch(setWeatherStation({ id, name })) &&
+            dispatch(
+              setIsAuthenticated({
+                isAuthenticated: true,
+              })
+            )
+          : null;
+
+        status === 200 &&
+        data.data.success === false &&
+        data.data.data === 'User has no station data'
+          ? toast.error(
+              'User has no station data. Please contact Administrator'
+            ) && localStorage.clear()
+          : null;
+      },
+    }
+  );
+
   const handleSignin = () => {
     console.log('email, password, keepLoggedIn', email, password, keepLoggedIn);
     signIn({ username: email, password: password });
   };
+
+  useEffect(() => {
+    const fetchStationList = async () => {
+      const userId = await getUserID();
+      console.log('userId', userId);
+      console.log('typeof userId', typeof userId);
+
+      if (userId) {
+        setUserIdState(Number(userId));
+        stationListQuery.refetch();
+      } else {
+        console.log('Unable to retrieve user_id from AsyncStorage');
+      }
+    };
+
+    if (isSignInSuccess) {
+      fetchStationList();
+    }
+  }, [isSignInSuccess]);
 
   return (
     <AccountContainer>

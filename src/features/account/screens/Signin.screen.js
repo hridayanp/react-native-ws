@@ -29,6 +29,13 @@ import {
   AccountTextInputView,
   LogoView,
 } from '../components/account.styles';
+import { logIn } from '../../../api/ApiService';
+import { useMutation } from '@tanstack/react-query';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ToastAndroid } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { setIsAuthenticated } from '../../../redux/login/loginSlice';
 
 const styles = StyleSheet.create({
   container: {
@@ -46,14 +53,48 @@ const styles = StyleSheet.create({
 });
 
 const Signin = ({ navigation }) => {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const [hidePassword, setHidePassword] = useState(true);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { mutate: signIn } = useMutation((userData) => logIn(userData), {
+    onMutate: () => {
+      console.log('onMutate');
+      setIsLoading(true);
+    },
+    onSuccess: async (data) => {
+      setIsLoading(false);
+      console.log('data :>> ', data);
+      if (data.status === 200) {
+        if (data.data.success === false) {
+          ToastAndroid.show(data.data.message, ToastAndroid.LONG);
+          return;
+        }
+
+        await AsyncStorage.setItem('access_token', data.data.access);
+        await AsyncStorage.setItem('refresh_token', data.data.refresh);
+        await AsyncStorage.setItem('user_id', String(data.data.user_id));
+
+        dispatch(
+          setIsAuthenticated({
+            isAuthenticated: true,
+          })
+        );
+      }
+    },
+    onError: (error) => {
+      console.log('error :>> ', error);
+    },
+  });
+
   const handleSignin = () => {
     console.log('email, password, keepLoggedIn', email, password, keepLoggedIn);
+    signIn({ username: email, password: password });
   };
 
   return (

@@ -9,33 +9,36 @@ import {
   StationDetailsHeading,
   StationDetailsHeadingWrapper,
 } from './stationDetails.styles';
-import { useSelector } from 'react-redux';
-import {
-  selectAvailableWeatherStations,
-  selectWeatherStation,
-} from '../../../../redux/dashboard/dashboardSlice';
 
-const StationDetailsComponent = () => {
-  const availableWeatherStations = useSelector(selectAvailableWeatherStations);
+const StationDetailsComponent = ({ currentWeather }) => {
+  const { device_id, device_name, district, state, project, lat, long } =
+    currentWeather?.data?.data[0];
 
-  const { id: station_id, name: station_name } =
-    useSelector(selectWeatherStation);
-
-  console.log('availableWeatherStations', availableWeatherStations);
-  console.log('station_id', station_id);
-
-  const dummydata = [
+  const currentWeatherData = [
     {
-      title: 'Title',
-      subtitle: 'Subtitle',
+      title: 'Device ID',
+      subtitle: device_id,
     },
     {
-      title: 'Title',
-      subtitle: 'Subtitle',
+      title: 'Project Name',
+      subtitle: project,
+    },
+
+    {
+      title: 'Device Name',
+      subtitle: device_name,
     },
     {
-      title: 'Title',
-      subtitle: 'Subtitle',
+      title: 'District',
+      subtitle: district,
+    },
+    {
+      title: 'State',
+      subtitle: state,
+    },
+    {
+      title: 'Coordinates',
+      subtitle: lat + ', ' + long,
     },
   ];
   return (
@@ -45,7 +48,7 @@ const StationDetailsComponent = () => {
       </StationDetailsHeadingWrapper>
 
       <StationDetailsContent>
-        {dummydata.map((item, index) => (
+        {currentWeatherData.map((item, index) => (
           <StationDetailsContentItem key={index}>
             <StationDetailsContentItemTitle>
               {item.title}

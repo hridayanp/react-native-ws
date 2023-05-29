@@ -1,5 +1,4 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StationDetailsContainer,
   StationDetailsContent,
@@ -8,11 +7,30 @@ import {
   StationDetailsContentItemTitle,
   StationDetailsHeading,
   StationDetailsHeadingWrapper,
+  StationDetailsMap,
+  StationDetailsMapContainer,
 } from './stationDetails.styles';
+import { Marker } from 'react-native-maps';
 
 const StationDetailsComponent = ({ currentWeather }) => {
   const { device_id, device_name, district, state, project, lat, long } =
     currentWeather?.data?.data[0];
+
+  const [mapRegion, setMapRegion] = useState({
+    latitude: Number(lat),
+    longitude: Number(long),
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+
+  useEffect(() => {
+    setMapRegion({
+      latitude: Number(lat),
+      longitude: Number(long),
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    });
+  }, [currentWeather]);
 
   const currentWeatherData = [
     {
@@ -59,6 +77,16 @@ const StationDetailsComponent = ({ currentWeather }) => {
           </StationDetailsContentItem>
         ))}
       </StationDetailsContent>
+
+      <StationDetailsMapContainer>
+        <StationDetailsMap initialRegion={mapRegion}>
+          <Marker
+            draggable={false}
+            coordinate={mapRegion}
+            title="Weather Station Location"
+          />
+        </StationDetailsMap>
+      </StationDetailsMapContainer>
     </StationDetailsContainer>
   );
 };

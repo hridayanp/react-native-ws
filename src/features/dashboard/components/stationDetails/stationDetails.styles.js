@@ -1,5 +1,6 @@
 import styled from 'styled-components/native';
 import CustomCard from '../../../../components/common/custom-card/custom-card.component';
+import MapView from 'react-native-maps';
 
 export const StationDetailsContainer = styled(CustomCard)`
   margin: 16px;
@@ -36,7 +37,7 @@ export const StationDetailsContent = styled.View`
 
 export const StationDetailsContentItem = styled.View`
   flex-direction: column;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
   width: 50%;
 `;
 
@@ -54,4 +55,16 @@ export const StationDetailsContentItemSubtitle = styled.Text`
   font-weight: 700;
   line-height: 21px;
   margin-top: 5px;
+`;
+
+export const StationDetailsMapContainer = styled.View`
+  margin: 16px;
+  elevation: 4;
+  border-radius: 4px;
+  flex: 1;
+`;
+
+export const StationDetailsMap = styled(MapView)`
+  width: 100%;
+  height: 100%;
 `;
